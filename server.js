@@ -1,8 +1,16 @@
-const dotenv = require("dotenv/config");
-const express = require("express");
+import dotenv from "dotenv/config";
+import bodyParser from "body-parser";
+import express from "express";
+import uuidv4 from "uuid/v4";
 
 // See documentation https://expressjs.com/en/starter/installing.html
 const app = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  req.dom = users[1]; // assigns user as Dom Gaulton (user 1)
+  next();
+});
 
 // with express request and response are shortened
 app.get("/", (req, res) => {
@@ -12,7 +20,7 @@ app.get("/", (req, res) => {
 let users = {
   1: {
     id: "1",
-    username: "Robin Wieruch"
+    username: "Dom Gaulton"
   },
   2: {
     id: "2",
@@ -61,6 +69,31 @@ app.get("/messages", (req, res) => {
 
 app.get("/messages/:messageId", (req, res) => {
   return res.send(messages[req.params.messageId]);
+});
+
+app.post("/messages", (req, res) => {
+  const id = uuidv4();
+  const message = {
+    id,
+    text: req.body.text,
+    userId: req.dom.id
+  };
+
+  messages[id] = message;
+
+  return res.send(message);
+});
+
+app.delete("/messages/:messageId", (req, res) => {
+  const { [req.params.messageId]: message, ...otherMessages } = messages;
+
+  messages = otherMessages;
+
+  return res.send(message);
+});
+
+app.get("/session", (req, res) => {
+  return res.send(users[req.dom.id]);
 });
 
 app.post("/users", (req, res) => {
